@@ -60,7 +60,7 @@ jobs:
           7z.exe x libiconv-1.9.2-1-bin.zip -o"libiconv-1.9.2-1-bin" &&^
           xcopy /H /Y /C ".\libiconv-1.9.2-1-bin\bin\iconv.exe" "%USERPROFILE%\Downloads\bison-2.4.1-bin\bin" &&^
           xcopy /H /Y /C ".\libiconv-1.9.2-1-bin\bin\libcharset1.dll" "%USERPROFILE%\Downloads\bison-2.4.1-bin\bin" &&^
-          xcopy /H /Y /C ".\ibiconv-1.9.2-1-bin\bin\libiconv2.dll" "%USERPROFILE%\Downloads\bison-2.4.1-bin\bin"
+          xcopy /H /Y /C ".\libiconv-1.9.2-1-bin\bin\libiconv2.dll" "%USERPROFILE%\Downloads\bison-2.4.1-bin\bin"
           
       - name: curl flex
         shell: cmd
