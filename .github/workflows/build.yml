@@ -1,0 +1,119 @@
+name: cpp-mingw-prebuilt-release-actions-workflow
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+      - 'c*'
+      
+permissions:
+    contents: write
+    
+jobs:
+  build:
+    strategy:
+      matrix:
+        compiler:
+        # - {
+        #     name: "x86_64-8.1.0-release-posix-seh-rt_v6-rev0",
+        #     url: "https://github.com/dirkarnez/cpp-tools/raw/main/x86_64-8.1.0-release-posix-seh-rt_v6-rev0.7z"
+        #   }
+        - {
+            name: "winlibs-x86_64-posix-seh-gcc-11.2.0-mingw-w64-9.0.0-r1",
+            url: "https://github.com/brechtsanders/winlibs_mingw/releases/download/11.2.0-12.0.1-9.0.0-r1/winlibs-x86_64-posix-seh-gcc-11.2.0-mingw-w64-9.0.0-r1.zip"
+          }
+        # - {
+        #     name: "msvc2019"
+        #   }
+
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: download compiler
+        if: ${{  matrix.compiler.url }}
+        shell: cmd
+        run: |
+          cd /d "%USERPROFILE%\Downloads" &&^
+          curl ${{ matrix.compiler.url }} -L --output compiler &&^
+          7z.exe x compiler -o"${{ matrix.compiler.name }}"
+          
+      # - name: curl b2
+      #   shell: cmd
+      #   run: |
+      #     cd /d "%USERPROFILE%\Downloads" &&^
+      #     curl https://github.com/bfgroup/b2/releases/download/5.3.3/b2-5.3.3.zip -L --output b2-5.3.3.zip &&^
+      #     7z.exe x b2-5.3.3.zip -o"b2-5.3.3"
+
+      - name: curl bison
+        shell: cmd
+        run: |
+          cd /d "%USERPROFILE%\Downloads" &&^
+          curl https://sf-west-interserver-1.dl.sourceforge.net/project/gnuwin32/bison/2.4.1/bison-2.4.1-bin.zip?viasf=1 -L --output bison-2.4.1-bin.zip &&^
+          7z.exe x bison-2.4.1-bin.zip -o"bison-2.4.1-bin"
+          
+      - name: curl flex
+        shell: cmd
+        run: |
+          cd /d "%USERPROFILE%\Downloads" &&^
+          curl https://zenlayer.dl.sourceforge.net/project/gnuwin32/flex/2.5.4a-1/flex-2.5.4a-1-bin.zip?viasf=1 -L --output flex-2.5.4a-1-bin.zip &&^
+          7z.exe x flex-2.5.4a-1-bin.zip -o"flex-2.5.4a-1-bin"
+          
+
+      # - shell: cmd
+      #   run: |
+      #     cd /d "${{ github.workspace }}\cmake-3.24.0-windows-x86_64\share\cmake-3.24\Modules\" &&^
+      #     del /f FindOpenSSL.cmake &&^
+      #     dir
+          
+      # - shell: cmd
+      #   run: |
+      #     curl https://github.com/dirkarnez/portaudio-prebuilt/releases/download/v19.7.0/portaudio-v19.7.0-mingw64-x86_64-posix-seh-rev0-8.1.0.zip -L -O &&^
+      #     7z.exe x portaudio-v19.7.0-mingw64-x86_64-posix-seh-rev0-8.1.0.zip -o"portaudio-v19.7.0-mingw64-x86_64-posix-seh-rev0-8.1.0"
+
+      # - shell: cmd
+      #   run: |
+      #     curl https://github.com/dirkarnez/zlib-prebuilt/releases/download/v1.2.13/zlib-v1.2.13-mingw64-x86_64-posix-seh-rev0-8.1.0.zip -L -O &&^
+      #     7z.exe x zlib-v1.2.13-mingw64-x86_64-posix-seh-rev0-8.1.0.zip -o"zlib-v1.2.13-mingw64-x86_64-posix-seh-rev0-8.1.0"
+          
+      # - name: set PATH, check mingw version, cmake generate, build and install
+      #   if: ${{ !matrix.compiler.url }}
+      #   shell: cmd
+      #   run: |
+      #       set PATH=^
+      #       ${{ github.workspace }}\mingw64;^
+      #       ${{ github.workspace }}\mingw64\bin;^
+      #       ${{ github.workspace }}\cmake-3.24.0-windows-x86_64\bin;
+      #       set CD_LINUX=%CD:\=/%
+      #       cd libsoda-cxx &&^
+      #       cmake.exe -G "Visual Studio 17 2022" -A x64 ^
+      #       -DCMAKE_BUILD_TYPE=Release ^
+      #       -DBUILD_SHARED_LIBS=OFF ^
+      #       -DCMAKE_INSTALL_PREFIX="cmake-build/${{ env.cmakeInstallationPath }}" -B./cmake-build &&^
+      #       cd cmake-build && cmake --build . --config Release && cmake --install . 
+            
+      - if: ${{ matrix.compiler.url }}
+        shell: cmd
+        run: |
+          gcc --version &&^
+          .\setup.cmd
+
+      - if: ${{ matrix.compiler.url }}
+        shell: cmd
+        run: |
+          gcc --version &&^
+          .\local-build.cmd
+
+      - name: Archive Release
+        uses: thedoctor0/zip-release@master
+        with:
+          type: 'zip'
+          directory: "bin/gcc-11/release/link-static/runtime-link-static/threadapi-win32"
+          filename: "${{ github.event.repository.name }}-${{ github.ref_name }}-${{ matrix.compiler.name }}.zip"
+        
+      - name: Release prebuilt
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "bin/gcc-11/release/link-static/runtime-link-static/threadapi-win32/${{ github.event.repository.name }}-${{ github.ref_name }}-${{ matrix.compiler.name }}.zip"
+          allowUpdates: true
+          token: ${{ secrets.GITHUB_TOKEN }}
