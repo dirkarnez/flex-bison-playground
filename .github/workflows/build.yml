@@ -50,7 +50,17 @@ jobs:
         run: |
           cd /d "%USERPROFILE%\Downloads" &&^
           curl https://sf-west-interserver-1.dl.sourceforge.net/project/gnuwin32/bison/2.4.1/bison-2.4.1-bin.zip?viasf=1 -L --output bison-2.4.1-bin.zip &&^
-          7z.exe x bison-2.4.1-bin.zip -o"bison-2.4.1-bin"
+          7z.exe x bison-2.4.1-bin.zip -o"bison-2.4.1-bin" &&^
+          echo libintl &&^
+          curl https://jaist.dl.sourceforge.net/project/gnuwin32/libintl/0.14.4/libintl-0.14.4-bin.zip?viasf=1 -L --output libintl-0.14.4-bin.zip &&^
+          7z.exe x libintl-0.14.4-bin.zip -o"libintl-0.14.4-bin" &&^
+          xcopy /H /Y /C ".\libintl-0.14.4-bin\bin\libintl3.dll" "%USERPROFILE%\Downloads\bison-2.4.1-bin\bin" &&^
+          echo libiconv &&^
+          curl https://jaist.dl.sourceforge.net/project/gnuwin32/libiconv/1.9.2-1/libiconv-1.9.2-1-bin.zip?viasf=1 -L --output libiconv-1.9.2-1-bin.zip &&^
+          7z.exe x libiconv-1.9.2-1-bin.zip -o"libiconv-1.9.2-1-bin" &&^
+          xcopy /H /Y /C ".\libiconv-1.9.2-1-bin\bin\iconv.exe" "%USERPROFILE%\Downloads\bison-2.4.1-bin\bin" &&^
+          xcopy /H /Y /C ".\libiconv-1.9.2-1-bin\bin\libcharset1.dll" "%USERPROFILE%\Downloads\bison-2.4.1-bin\bin" &&^
+          xcopy /H /Y /C ".\ibiconv-1.9.2-1-bin\bin\libiconv2.dll" "%USERPROFILE%\Downloads\bison-2.4.1-bin\bin"
           
       - name: curl flex
         shell: cmd
@@ -58,7 +68,15 @@ jobs:
           cd /d "%USERPROFILE%\Downloads" &&^
           curl https://zenlayer.dl.sourceforge.net/project/gnuwin32/flex/2.5.4a-1/flex-2.5.4a-1-bin.zip?viasf=1 -L --output flex-2.5.4a-1-bin.zip &&^
           7z.exe x flex-2.5.4a-1-bin.zip -o"flex-2.5.4a-1-bin"
-          
+
+      # bison needs libintl3.dll
+      - shell: cmd
+        run: |
+          set PATH=^
+          %USERPROFILE%\Downloads\bison-2.4.1-bin\bin;^
+          %USERPROFILE%\Downloads\flex-2.5.4a-1-bin\bin;
+          bison -V &&^
+          flex -V
 
       # - shell: cmd
       #   run: |
